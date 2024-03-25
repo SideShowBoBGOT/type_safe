@@ -1,2 +1,5 @@
-# ignore conan.io package test buildtree
-test_package/build
+cmake-build-debug
+.idea
+conan_external
+CMakeUserPresets.json
+build

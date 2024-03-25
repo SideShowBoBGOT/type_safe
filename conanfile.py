@@ -1,23 +1,41 @@
-from conans import ConanFile
-from conans.tools import download, untargz
 import os
+
+from conan import ConanFile
+from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain
+
 
 class TypeSafe(ConanFile):
     name = 'type_safe'
-    url  = 'https://github.com/foonathan/type_safe'
-    version = '0.2.3'
-    requires = 'debug_assert/1.3@Manu343726/testing'
-    exports = '*.hpp'
-    generators = 'cmake'
+    version = '1.0.0'
+    user = "user"
+    channel = "stable"
+    settings = ("os", "build_type", "arch", "compiler")
+    exports_sources = ("CMakeLists.txt", "include/*", "external/*")
+    no_copy_source = True
 
+    def layout(self):
+        self.folders.build = "conan_external"
+        self.folders.generators = os.path.join(self.folders.build, "generators")
 
-    def source(self):
-        tar = 'type_safe-{}.tar.gz'.format(self.version)
-        url = 'https://github.com/foonathan/type_safe/archive/v{}.tar.gz'.format(self.version)
-        download(url, tar)
-        untargz(tar)
+    def generate(self):
+        deps = CMakeDeps(self)
+        deps.check_components_exist = True
+        deps.generate()
+        tc = CMakeToolchain(self)
+        tc.generate()
+
+    def build(self):
+        cmake = CMake(self)
+        cmake.configure()
+        cmake.build()
+
+    def build_requirements(self):
+        self.tool_requires("cmake/[>=3.5]")
 
     def package(self):
-        includedir = os.path.join('include', 'type_safe')
-        srcdir = os.path.join('type_safe-{}'.format(self.version), includedir)
-        self.copy('*.hpp', src=srcdir, dst=includedir)
+        cmake = CMake(self)
+        cmake.install()
+
+    def package_info(self):
+        self.cpp_info.bindirs = []
+        self.cpp_info.libdirs = []
