@@ -46,6 +46,26 @@ namespace detail
         using type = floating_point<T>;
     };
 
+    template<typename T>
+    using check_integer = std::enable_if<
+        std::is_same<
+            T,
+            typename get_target_integer<
+                typename T::integer_type, typename T::policy_type
+            >::type
+        >::value,
+        T
+    >;
+
+    template<typename T>
+    using check_floating_point = std::enable_if<
+        std::is_same<
+            T,
+            typename get_target_floating_point<typename T::floating_point_type>::type
+        >::value,
+        T
+    >;
+
     template <typename Target, typename Source>
     TYPE_SAFE_FORCE_INLINE constexpr bool is_narrowing(
         const Source& source,
@@ -116,6 +136,39 @@ TYPE_SAFE_FORCE_INLINE constexpr auto narrow_cast(const floating_point<Source>& 
     using target_t     = typename target_float::floating_point_type;
     return narrow_cast<target_t>(static_cast<Source>(source));
 }
+
+template<typename Target, typename Source, class Policy>
+TYPE_SAFE_FORCE_INLINE constexpr auto type_cast(const integer<Source, Policy>& source) noexcept ->
+    typename detail::check_integer<Target>::type
+{
+    using target_t = typename Target::integer_type;
+    return static_cast<target_t>(static_cast<Source>(source));
+}
+
+template<typename Target, typename Source, class Policy>
+TYPE_SAFE_FORCE_INLINE constexpr auto type_cast(const integer<Source, Policy>& source) noexcept ->
+    typename detail::check_floating_point<Target>::type
+{
+    using target_t = typename Target::floating_point_type;
+    return static_cast<target_t>(static_cast<Source>(source));
+}
+
+template<typename Target, typename Source>
+TYPE_SAFE_FORCE_INLINE constexpr auto type_cast(const floating_point<Source>& source) noexcept ->
+    typename detail::check_integer<Target>::type
+{
+    using target_t = typename Target::integer_type;
+    return static_cast<target_t>(static_cast<Source>(source));
+}
+
+template<typename Target, typename Source>
+TYPE_SAFE_FORCE_INLINE constexpr auto type_cast(const floating_point<Source>& source) noexcept ->
+    typename detail::check_floating_point<Target>::type
+{
+    using target_t = typename Target::floating_point_type;
+    return static_cast<target_t>(static_cast<Source>(source));
+}
+
 } // namespace type_safe
 
 #endif // TYPE_SAFE_NARROW_CAST_HPP_INCLUDED

@@ -96,6 +96,7 @@ class integer
 
 public:
     using integer_type = IntegerT;
+    using policy_type = Policy;
 
     //=== constructors ===//
 #if TYPE_SAFE_DELETE_FUNCTIONS
