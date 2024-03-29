@@ -29,7 +29,7 @@ namespace detail
     template <typename T>
     struct is_integer
     : std::integral_constant<bool, std::is_integral<T>::value && !std::is_same<T, bool>::value
-                                       && !std::is_same<T, char>::value>
+                                       /*&& !std::is_same<T, char>::value*/>
     {};
 
     template <typename From, typename To>
