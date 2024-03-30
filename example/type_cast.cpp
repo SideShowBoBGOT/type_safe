@@ -12,12 +12,13 @@ int main() {
 
 
 	{
+		auto va = type_safe::math::max(0_i32, 11_i32);
+		std::cout << va << std::endl;
 		const auto c = type_safe::types::int8_t{static_cast<char>(9)};
-		const auto o = type_safe::types::int32_t{static_cast<unsigned char>(9)};
-		const type_safe::types::double_t f = 0.1;
-		auto cu = type_safe::math::abs(c);
-		auto co = type_safe::math::abs(o);
-		auto fu = type_safe::math::abs(f);
+		const auto first = type_safe::types::size_t{static_cast<unsigned char>(9)};
+		const auto second = type_safe::types::size_t{static_cast<unsigned char>(9)};
+		const auto third = first * second;
+		third.get();
 	}
 
     {

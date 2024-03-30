@@ -3,6 +3,7 @@
 
 #include <type_safe/narrow_cast.hpp>
 #include <cmath>
+#include <algorithm>
 
 namespace type_safe {
 	namespace math {
@@ -42,6 +43,26 @@ namespace type_safe {
 		) noexcept -> floating_point<FloatingType> {
 			return static_cast<FloatingType>(std::atan2(static_cast<FloatingType>(y), static_cast<FloatingType>(x)));
 		}
+
+		#define NUMBER_PAIR_OPERATION(func_name)\
+			template<typename IntegerType, typename Policy>\
+			TYPE_SAFE_FORCE_INLINE constexpr auto func_name(\
+				const integer<IntegerType, Policy>& first,\
+				const integer<IntegerType, Policy>& second\
+			) noexcept -> integer<IntegerType, Policy> {\
+				return static_cast<IntegerType>(std::func_name(static_cast<IntegerType>(first), static_cast<IntegerType>(second)));\
+			}\
+			template<typename FloatingType>\
+			TYPE_SAFE_FORCE_INLINE constexpr auto func_name(\
+				const floating_point<FloatingType>& first,\
+				const floating_point<FloatingType>& second\
+			) noexcept -> floating_point<FloatingType> {\
+				return static_cast<FloatingType>(std::func_name(static_cast<FloatingType>(first), static_cast<FloatingType>(second)));\
+			}
+
+			NUMBER_PAIR_OPERATION(max);
+			NUMBER_PAIR_OPERATION(min);
+		#undef NUMBER_PAIR_OPERATION
 
 	}
 }
