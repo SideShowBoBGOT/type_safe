@@ -17,6 +17,7 @@ import std;
 #include <type_safe/arithmetic_policy.hpp>
 #include <type_safe/detail/assert.hpp>
 #include <type_safe/detail/force_inline.hpp>
+#include <type_traits>
 
 namespace type_safe
 {
@@ -34,12 +35,13 @@ namespace detail
 
     template <typename From, typename To>
     struct is_safe_integer_conversion
-    : std::integral_constant<bool,
-                             detail::is_integer<From>::value && detail::is_integer<To>::value
-                                 && ((sizeof(From) <= sizeof(To)
-                                      && std::is_signed<From>::value == std::is_signed<To>::value)
-                                     || (sizeof(From) < sizeof(To) && std::is_unsigned<From>::value
-                                         && std::is_signed<To>::value))>
+    : std::integral_constant<
+		bool,
+		detail::is_integer<From>::value
+		and detail::is_integer<To>::value
+		and (sizeof(From) <= sizeof(To))
+		and std::is_signed<From>::value == std::is_signed<To>::value
+	>
     {};
 
     template <typename From, typename To>
@@ -454,27 +456,27 @@ TYPE_SAFE_FORCE_INLINE constexpr integer<UnsignedInteger, Policy> abs(
 /// \exclude
 namespace detail
 {
-    // A signed, B unsigned
-    template <typename A, typename B, class Policy>
-    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_equal_unsafe_impl(const integer<A, Policy>& a,
-                                                                const integer<B, Policy>& b,
-                                                                std::true_type,
-                                                                std::false_type) noexcept
-    {
-        using UA = typename make_unsigned<A>::type;
-        return static_cast<A>(a) < 0 ? false : UA(static_cast<A>(a)) == static_cast<B>(b);
-    }
+//    // A signed, B unsigned
+//    template <typename A, typename B, class Policy>
+//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_equal_unsafe_impl(const integer<A, Policy>& a,
+//                                                                const integer<B, Policy>& b,
+//                                                                std::true_type,
+//                                                                std::false_type) noexcept
+//    {
+//        using UA = typename make_unsigned<A>::type;
+//        return static_cast<A>(a) < 0 ? false : UA(static_cast<A>(a)) == static_cast<B>(b);
+//    }
 
-    // A unsigned, B signed
-    template <typename A, typename B, class Policy>
-    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_equal_unsafe_impl(const integer<A, Policy>& a,
-                                                                const integer<B, Policy>& b,
-                                                                std::false_type,
-                                                                std::true_type) noexcept
-    {
-        using UB = typename make_unsigned<B>::type;
-        return static_cast<B>(b) < 0 ? false : UB(static_cast<B>(b)) == static_cast<A>(a);
-    }
+//    // A unsigned, B signed
+//    template <typename A, typename B, class Policy>
+//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_equal_unsafe_impl(const integer<A, Policy>& a,
+//                                                                const integer<B, Policy>& b,
+//                                                                std::false_type,
+//                                                                std::true_type) noexcept
+//    {
+//        using UB = typename make_unsigned<B>::type;
+//        return static_cast<B>(b) < 0 ? false : UB(static_cast<B>(b)) == static_cast<A>(a);
+//    }
 
     // A and B same signedness
     template <typename A, typename B, class Policy>
@@ -485,36 +487,36 @@ namespace detail
         return static_cast<A>(a) == static_cast<B>(b);
     }
 
-    // A and B different signedness
-    template <typename A, typename B, class Policy>
-    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_equal_impl(const integer<A, Policy>& a,
-                                                         const integer<B, Policy>& b,
-                                                         std::false_type) noexcept
-    {
-        return cmp_equal_unsafe_impl(a, b, std::is_signed<A>(), std::is_signed<B>());
-    }
+//    // A and B different signedness
+//    template <typename A, typename B, class Policy>
+//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_equal_impl(const integer<A, Policy>& a,
+//                                                         const integer<B, Policy>& b,
+//                                                         std::false_type) noexcept
+//    {
+//        return cmp_equal_unsafe_impl(a, b, std::is_signed<A>(), std::is_signed<B>());
+//    }
 
-    // A signed, B unsigned
-    template <typename A, typename B, class Policy>
-    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_less_unsafe_impl(const integer<A, Policy>& a,
-                                                               const integer<B, Policy>& b,
-                                                               std::true_type,
-                                                               std::false_type) noexcept
-    {
-        using UA = typename make_unsigned<A>::type;
-        return static_cast<A>(a) < 0 ? true : UA(static_cast<A>(a)) < static_cast<B>(b);
-    }
+//    // A signed, B unsigned
+//    template <typename A, typename B, class Policy>
+//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_less_unsafe_impl(const integer<A, Policy>& a,
+//                                                               const integer<B, Policy>& b,
+//                                                               std::true_type,
+//                                                               std::false_type) noexcept
+//    {
+//        using UA = typename make_unsigned<A>::type;
+//        return static_cast<A>(a) < 0 ? true : UA(static_cast<A>(a)) < static_cast<B>(b);
+//    }
 
-    // A unsigned, B signed
-    template <typename A, typename B, class Policy>
-    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_less_unsafe_impl(const integer<A, Policy>& a,
-                                                               const integer<B, Policy>& b,
-                                                               std::false_type,
-                                                               std::true_type) noexcept
-    {
-        using UB = typename make_unsigned<B>::type;
-        return static_cast<B>(b) < 0 ? false : static_cast<A>(a) < UB(static_cast<B>(b));
-    }
+//    // A unsigned, B signed
+//    template <typename A, typename B, class Policy>
+//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_less_unsafe_impl(const integer<A, Policy>& a,
+//                                                               const integer<B, Policy>& b,
+//                                                               std::false_type,
+//                                                               std::true_type) noexcept
+//    {
+//        using UB = typename make_unsigned<B>::type;
+//        return static_cast<B>(b) < 0 ? false : static_cast<A>(a) < UB(static_cast<B>(b));
+//    }
 
     // A and B same signedness
     template <typename A, typename B, class Policy>
@@ -525,14 +527,14 @@ namespace detail
         return static_cast<A>(a) < static_cast<B>(b);
     }
 
-    // A and B different signedness
-    template <typename A, typename B, class Policy>
-    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_less_impl(const integer<A, Policy>& a,
-                                                        const integer<B, Policy>& b,
-                                                        std::false_type) noexcept
-    {
-        return cmp_less_unsafe_impl(a, b, std::is_signed<A>(), std::is_signed<B>());
-    }
+//    // A and B different signedness
+//    template <typename A, typename B, class Policy>
+//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_less_impl(const integer<A, Policy>& a,
+//                                                        const integer<B, Policy>& b,
+//                                                        std::false_type) noexcept
+//    {
+//        return cmp_less_unsafe_impl(a, b, std::is_signed<A>(), std::is_signed<B>());
+//    }
 
 } // namespace detail
 
