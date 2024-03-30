@@ -56,4 +56,4 @@ install(DIRECTORY include/
 )
 
 
-#add_subdirectory(example)
+add_subdirectory(example)

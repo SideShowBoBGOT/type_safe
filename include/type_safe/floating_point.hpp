@@ -83,11 +83,7 @@ class floating_point
 public:
     using floating_point_type = FloatT;
 
-    //=== constructors ===//
-#if TYPE_SAFE_DELETE_FUNCTIONS
-    /// \exclude
-    floating_point() = delete;
-#endif
+    floating_point()=default;
 
     /// \effects Initializes the floating point with the given value.
     /// \notes These functions do not participate in overload resolution,
@@ -263,7 +259,7 @@ public:
 #undef TYPE_SAFE_DETAIL_MAKE_OP
 
 private:
-    floating_point_type value_;
+    floating_point_type value_ = 0.0;
 };
 
 //=== comparison ===//

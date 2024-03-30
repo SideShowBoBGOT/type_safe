@@ -101,10 +101,7 @@ public:
     using policy_type = Policy;
 
     //=== constructors ===//
-#if TYPE_SAFE_DELETE_FUNCTIONS
-    /// \exclude
-    integer() = delete;
-#endif
+    integer()=default;
 
     /// \effects Initializes it with the given value.
     /// \notes This function does not participate in overload resolution
@@ -307,7 +304,7 @@ public:
 #undef TYPE_SAFE_DETAIL_MAKE_OP
 
 private:
-    integer_type value_;
+    integer_type value_ = 0;
 };
 
 //=== operations ===//
