@@ -29,6 +29,7 @@ add_library(type_safe INTERFACE
         include/type_safe/floating_point.hpp
         include/type_safe/index.hpp
         include/type_safe/integer.hpp
+        include/type_safe/math.hpp
         include/type_safe/narrow_cast.hpp
         include/type_safe/optional.hpp
         include/type_safe/optional_ref.hpp
