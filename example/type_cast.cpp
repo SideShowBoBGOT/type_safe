@@ -19,7 +19,5 @@ int main() {
 
 	type_safe::float_t f1 = 4.f;
 	type_safe::float_t f2 = 2.f;
-	std::cout << std::pow(f1, f2) << "\n";
-	std::cout << std::pow(f1, 2.f) << "\n";
-	std::cout << std::pow(4.f, f2) << "\n";
+
 }

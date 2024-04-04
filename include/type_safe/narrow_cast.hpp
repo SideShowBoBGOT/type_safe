@@ -46,25 +46,23 @@ namespace detail
         using type = floating_point<T>;
     };
 
-    template<typename T>
-    using check_integer = std::enable_if<
-        std::is_same<
-            T,
-            typename get_target_integer<
-                typename T::integer_type, typename T::policy_type
-            >::type
-        >::value,
-        T
-    >;
+	template <class T, template <class...> class Template>
+	struct is_specialization : std::false_type {};
+
+	template <template <class...> class Template, class... Args>
+	struct is_specialization<Template<Args...>, Template> : std::true_type {};
+
+	template<typename T>
+	using is_type_safe_integer = is_specialization<T, integer>;
+
+	template<typename T>
+	using is_type_safe_floating_type = is_specialization<T, floating_point>;
 
     template<typename T>
-    using check_floating_point = std::enable_if<
-        std::is_same<
-            T,
-            typename get_target_floating_point<typename T::floating_point_type>::type
-        >::value,
-        T
-    >;
+    using check_integer = std::enable_if<is_type_safe_integer<T>{}, T>;
+
+    template<typename T>
+    using check_floating_point = std::enable_if<is_type_safe_floating_type<T>{}, T>;
 
     template <typename Target, typename Source>
     TYPE_SAFE_FORCE_INLINE constexpr bool is_narrowing(
