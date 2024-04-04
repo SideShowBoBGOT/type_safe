@@ -648,18 +648,18 @@ TYPE_SAFE_DETAIL_MAKE_OP(>=)
     {                                                                                              \
         return a Op integer<B, Policy>(b);                                                         \
     }                                                                                              \
-    /** \exclude */                                                                                \
-    template <typename A, typename B, class Policy,                                                \
-              typename = detail::fallback_integer_result<A, B>>                                    \
-    constexpr int operator Op(integer<A, Policy>, integer<B, Policy>) = delete;                    \
-    /** \exclude */                                                                                \
-    template <typename A, typename B, class Policy,                                                \
-              typename = detail::fallback_integer_result<A, B>>                                    \
-    constexpr int operator Op(A, integer<B, Policy>) = delete;                                     \
-    /** \exclude */                                                                                \
-    template <typename A, class Policy, typename B,                                                \
-              typename = detail::fallback_integer_result<A, B>>                                    \
-    constexpr int operator Op(integer<A, Policy>, B) = delete;
+    // /** \exclude */                                                                                \
+    // template <typename A, typename B, class Policy,                                                \
+    //           typename = detail::fallback_integer_result<A, B>>                                    \
+    // constexpr int operator Op(integer<A, Policy>, integer<B, Policy>) = delete;                    \
+    // /** \exclude */                                                                                \
+    // template <typename A, typename B, class Policy,                                                \
+    //           typename = detail::fallback_integer_result<A, B>>                                    \
+    // constexpr int operator Op(A, integer<B, Policy>) = delete;                                     \
+    // /** \exclude */                                                                                \
+    // template <typename A, class Policy, typename B,                                                \
+    //           typename = detail::fallback_integer_result<A, B>>                                    \
+    // constexpr int operator Op(integer<A, Policy>, B) = delete;
 
 /// \returns The result of the binary operation of the stored integer value in the [ts::integer]().
 /// The type is a [ts::integer]() of the bigger integer type.
