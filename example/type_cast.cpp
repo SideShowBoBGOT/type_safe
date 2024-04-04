@@ -11,6 +11,8 @@ int main() {
     using namespace ts::types::literals;
 	type_safe::types::int16_t c = 255_i16;
 	type_safe::types::int32_t a = c;
+	c + a;
+	// c + 1.0;
 	type_safe::types::uint32_t b = 255u;
 	static_assert(type_safe::detail::is_safe_integer_conversion<uint16_t, uint32_t>::value);
 	c * a;

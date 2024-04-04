@@ -364,15 +364,15 @@ TYPE_SAFE_DETAIL_MAKE_OP(>=)
     {                                                                                              \
         return a Op floating_point<B>(b);                                                          \
     }                                                                                              \
-    /** \exclude */                                                                                \
-    template <typename A, typename B, typename = detail::fallback_floating_point_result<A, B>>     \
-    constexpr int operator Op(floating_point<A>, floating_point<B>) noexcept = delete;             \
-    /** \exclude */                                                                                \
-    template <typename A, typename B, typename = detail::fallback_floating_point_result<A, B>>     \
-    constexpr int operator Op(A, floating_point<B>) noexcept = delete;                             \
-    /** \exclude */                                                                                \
-    template <typename A, typename B, typename = detail::fallback_floating_point_result<A, B>>     \
-    constexpr int operator Op(floating_point<A>, B) noexcept = delete;
+    // /** \exclude */                                                                                \
+    // template <typename A, typename B, typename = detail::fallback_floating_point_result<A, B>>     \
+    // constexpr int operator Op(floating_point<A>, floating_point<B>) noexcept = delete;             \
+    // /** \exclude */                                                                                \
+    // template <typename A, typename B, typename = detail::fallback_floating_point_result<A, B>>     \
+    // constexpr int operator Op(A, floating_point<B>) noexcept = delete;                             \
+    // /** \exclude */                                                                                \
+    // template <typename A, typename B, typename = detail::fallback_floating_point_result<A, B>>     \
+    // constexpr int operator Op(floating_point<A>, B) noexcept = delete;
 
 /// \returns The result of the binary operation of the stored floating point value in the
 /// [ts::floating_point](). The type is a [ts::floating_point]() of the bigger floating point type.
