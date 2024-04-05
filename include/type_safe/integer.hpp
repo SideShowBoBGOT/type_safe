@@ -283,6 +283,123 @@ private:
     integer_type value_ = 0;
 };
 
+//=== operations ===//
+/// \exclude
+namespace detail
+{
+	template <typename T>
+	struct make_signed
+	{
+		using type = typename std::make_signed<T>::type;
+	};
+
+	template <typename T, class Policy>
+	struct make_signed<integer<T, Policy>>
+	{
+		using type = integer<typename std::make_signed<T>::type, Policy>;
+	};
+
+	template <typename T>
+	struct make_unsigned
+	{
+		using type = typename std::make_unsigned<T>::type;
+	};
+
+	template <typename T, class Policy>
+	struct make_unsigned<integer<T, Policy>>
+	{
+		using type = integer<typename std::make_unsigned<T>::type, Policy>;
+	};
+} // namespace detail
+
+/// [std::make_signed]() for [ts::integer]().
+/// \module types
+/// \exclude target
+template <class Integer>
+using make_signed_t = typename detail::make_signed<Integer>::type;
+
+/// \returns A new integer of the corresponding signed integer type.
+/// \requires The value of `i` must fit into signed type.
+/// \module types
+/// \param 1
+/// \exclude
+template <typename Integer,
+	typename = typename std::enable_if<detail::is_integer<Integer>::value>::type>
+TYPE_SAFE_FORCE_INLINE constexpr make_signed_t<Integer> make_signed(const Integer& i)
+{
+	using result_type = make_signed_t<Integer>;
+	return i <= Integer(std::numeric_limits<result_type>::max())
+		? static_cast<result_type>(i)
+		: DEBUG_UNREACHABLE(detail::precondition_error_handler{}, "conversion "
+																  "would "
+																  "overflow");
+}
+
+/// \returns A new [ts::integer]() of the corresponding signed integer type.
+/// \requires The value of `i` must fit into signed type.
+/// \module types
+template <typename Integer, class Policy>
+TYPE_SAFE_FORCE_INLINE constexpr make_signed_t<integer<Integer, Policy>> make_signed(
+	const integer<Integer, Policy>& i)
+{
+	return make_signed(static_cast<Integer>(i));
+}
+
+/// [std::make_unsigned]() for [ts::integer]().
+/// \module types
+/// \exclude target
+template <class Integer>
+using make_unsigned_t = typename detail::make_unsigned<Integer>::type;
+
+/// \returns A new integer of the corresponding unsigned integer type.
+/// \requires The value of `i` must not be negative.
+/// \module types
+/// \param 1
+/// \exclude
+template <typename Integer,
+	typename = typename std::enable_if<detail::is_integer<Integer>::value>::type>
+TYPE_SAFE_FORCE_INLINE constexpr make_unsigned_t<Integer> make_unsigned(const Integer& i)
+{
+	using result_type = make_unsigned_t<Integer>;
+	return i >= Integer(0) ? static_cast<result_type>(i)
+		: DEBUG_UNREACHABLE(detail::precondition_error_handler{},
+			"conversion would underflow");
+}
+
+/// \returns A new [ts::integer]() of the corresponding unsigned integer type.
+/// \requires The value of `i` must not be negative.
+/// \module types
+template <typename Integer, class Policy>
+TYPE_SAFE_FORCE_INLINE constexpr make_unsigned_t<integer<Integer, Policy>> make_unsigned(
+	const integer<Integer, Policy>& i)
+{
+	return make_unsigned(static_cast<Integer>(i));
+}
+
+/// \returns The absolute value of a built-in signed integer.
+/// It will be changed to the unsigned return type as well.
+/// \module types
+/// \param 1
+/// \exclude
+template <typename SignedInteger,
+	typename = typename std::enable_if<std::is_signed<SignedInteger>::value>::type>
+TYPE_SAFE_FORCE_INLINE constexpr make_unsigned_t<SignedInteger> abs(const SignedInteger& i)
+{
+	return make_unsigned(i > 0 ? i : -i);
+}
+
+/// \returns The absolute value of an [ts::integer]().
+/// \module types
+/// \param 2
+/// \exclude
+template <typename SignedInteger, class Policy,
+	typename = typename std::enable_if<std::is_signed<SignedInteger>::value>::type>
+TYPE_SAFE_FORCE_INLINE constexpr make_unsigned_t<integer<SignedInteger, Policy>> abs(
+	const integer<SignedInteger, Policy>& i)
+{
+	return make_unsigned(i > 0 ? i : -i);
+}
+
 //=== comparison ===//
 /// \exclude
 namespace detail
