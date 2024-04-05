@@ -44,26 +44,26 @@ namespace std {
 
 
 	#define FLOAT_PAIR_OPERATION(func_name)\
-			template<typename FloatingType>\
+			template<typename A, typename B, typename = type_safe::detail::enable_safe_floating_point_conversion<A, B>>\
 			TYPE_SAFE_FORCE_INLINE constexpr auto func_name(\
-				const type_safe::floating_point<FloatingType>& y,\
-				const type_safe::floating_point<FloatingType>& x\
-			) noexcept -> type_safe::floating_point<FloatingType> {\
-				return static_cast<FloatingType>(std::func_name(static_cast<FloatingType>(y), static_cast<FloatingType>(x)));\
+				const type_safe::floating_point<A> y,\
+				const type_safe::floating_point<B> x\
+			) noexcept -> type_safe::floating_point<A> {\
+				return static_cast<A>(std::func_name(static_cast<A>(y), static_cast<A>(static_cast<B>(x))));\
 			}                                    \
-			template<typename FloatingType>\
+			template<typename A, typename B, typename = type_safe::detail::enable_safe_floating_point_conversion<A, B>>\
 			TYPE_SAFE_FORCE_INLINE constexpr auto func_name(\
-				const type_safe::floating_point<FloatingType>& y,\
-				const FloatingType& x\
-			) noexcept -> type_safe::floating_point<FloatingType> {\
-				return static_cast<FloatingType>(std::func_name(static_cast<FloatingType>(y), static_cast<FloatingType>(x)));\
+				const type_safe::floating_point<A> y,\
+				const B x\
+			) noexcept -> type_safe::floating_point<A> {\
+				return std::func_name(static_cast<A>(y), static_cast<A>(x));\
 			}                                    \
-			template<typename FloatingType>\
+			template<typename A, typename B, typename = type_safe::detail::enable_safe_floating_point_conversion<A, B>>\
 			TYPE_SAFE_FORCE_INLINE constexpr auto func_name(\
-				const FloatingType y,\
-				const type_safe::floating_point<FloatingType>& x\
-			) noexcept -> type_safe::floating_point<FloatingType> {\
-				return static_cast<FloatingType>(std::func_name(static_cast<FloatingType>(y), static_cast<FloatingType>(x)));\
+				const A y,\
+				const type_safe::floating_point<B> x\
+			) noexcept -> type_safe::floating_point<B> {\
+				return std::func_name(static_cast<B>(y), static_cast<B>(x));\
 			}
 
 		FLOAT_PAIR_OPERATION(atan2);

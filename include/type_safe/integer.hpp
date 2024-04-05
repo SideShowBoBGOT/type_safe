@@ -39,7 +39,7 @@ namespace detail
 		bool,
 		detail::is_integer<From>::value
 		and detail::is_integer<To>::value
-		and (sizeof(From) <= sizeof(To))
+		and (sizeof(From) == sizeof(To))
 		and std::is_signed<From>::value == std::is_signed<To>::value
 	>
     {};
@@ -52,30 +52,6 @@ namespace detail
     using fallback_safe_integer_conversion =
         typename std::enable_if<!is_safe_integer_conversion<From, To>::value>::type;
 
-    template <typename A, typename B>
-    struct is_safe_integer_comparison
-    : std::integral_constant<bool, is_safe_integer_conversion<A, B>::value
-                                       || is_safe_integer_conversion<B, A>::value>
-    {};
-
-    template <typename A, typename B>
-    struct is_safe_integer_operation
-    : std::integral_constant<bool, detail::is_integer<A>::value && detail::is_integer<B>::value
-                                       && std::is_signed<A>::value == std::is_signed<B>::value>
-    {};
-
-    template <typename A, typename B>
-    struct integer_result_type
-    : std::enable_if<is_safe_integer_operation<A, B>::value,
-                     typename std::conditional<sizeof(A) < sizeof(B), B, A>::type>
-    {};
-
-    template <typename A, typename B>
-    using integer_result_t = typename integer_result_type<A, B>::type;
-
-    template <typename A, typename B>
-    using fallback_integer_result =
-        typename std::enable_if<!is_safe_integer_operation<A, B>::value>::type;
 } // namespace detail
 
 /// A type safe integer class.
@@ -307,173 +283,10 @@ private:
     integer_type value_ = 0;
 };
 
-//=== operations ===//
-/// \exclude
-namespace detail
-{
-    template <typename T>
-    struct make_signed
-    {
-        using type = typename std::make_signed<T>::type;
-    };
-
-    template <typename T, class Policy>
-    struct make_signed<integer<T, Policy>>
-    {
-        using type = integer<typename std::make_signed<T>::type, Policy>;
-    };
-
-    template <typename T>
-    struct make_unsigned
-    {
-        using type = typename std::make_unsigned<T>::type;
-    };
-
-    template <typename T, class Policy>
-    struct make_unsigned<integer<T, Policy>>
-    {
-        using type = integer<typename std::make_unsigned<T>::type, Policy>;
-    };
-} // namespace detail
-
-/// [std::make_signed]() for [ts::integer]().
-/// \module types
-/// \exclude target
-template <class Integer>
-using make_signed_t = typename detail::make_signed<Integer>::type;
-
-/// \returns A new integer of the corresponding signed integer type.
-/// \requires The value of `i` must fit into signed type.
-/// \module types
-/// \param 1
-/// \exclude
-template <typename Integer,
-          typename = typename std::enable_if<detail::is_integer<Integer>::value>::type>
-TYPE_SAFE_FORCE_INLINE constexpr make_signed_t<Integer> make_signed(const Integer& i)
-{
-    using result_type = make_signed_t<Integer>;
-    return i <= Integer(std::numeric_limits<result_type>::max())
-               ? static_cast<result_type>(i)
-               : DEBUG_UNREACHABLE(detail::precondition_error_handler{}, "conversion "
-                                                                         "would "
-                                                                         "overflow");
-}
-
-/// \returns A new [ts::integer]() of the corresponding signed integer type.
-/// \requires The value of `i` must fit into signed type.
-/// \module types
-template <typename Integer, class Policy>
-TYPE_SAFE_FORCE_INLINE constexpr make_signed_t<integer<Integer, Policy>> make_signed(
-    const integer<Integer, Policy>& i)
-{
-    return make_signed(static_cast<Integer>(i));
-}
-
-/// [std::make_unsigned]() for [ts::integer]().
-/// \module types
-/// \exclude target
-template <class Integer>
-using make_unsigned_t = typename detail::make_unsigned<Integer>::type;
-
-/// \returns A new integer of the corresponding unsigned integer type.
-/// \requires The value of `i` must not be negative.
-/// \module types
-/// \param 1
-/// \exclude
-template <typename Integer,
-          typename = typename std::enable_if<detail::is_integer<Integer>::value>::type>
-TYPE_SAFE_FORCE_INLINE constexpr make_unsigned_t<Integer> make_unsigned(const Integer& i)
-{
-    using result_type = make_unsigned_t<Integer>;
-    return i >= Integer(0) ? static_cast<result_type>(i)
-                           : DEBUG_UNREACHABLE(detail::precondition_error_handler{},
-                                               "conversion would underflow");
-}
-
-/// \returns A new [ts::integer]() of the corresponding unsigned integer type.
-/// \requires The value of `i` must not be negative.
-/// \module types
-template <typename Integer, class Policy>
-TYPE_SAFE_FORCE_INLINE constexpr make_unsigned_t<integer<Integer, Policy>> make_unsigned(
-    const integer<Integer, Policy>& i)
-{
-    return make_unsigned(static_cast<Integer>(i));
-}
-
-/// \returns The absolute value of a built-in signed integer.
-/// It will be changed to the unsigned return type as well.
-/// \module types
-/// \param 1
-/// \exclude
-template <typename SignedInteger,
-          typename = typename std::enable_if<std::is_signed<SignedInteger>::value>::type>
-TYPE_SAFE_FORCE_INLINE constexpr make_unsigned_t<SignedInteger> abs(const SignedInteger& i)
-{
-    return make_unsigned(i > 0 ? i : -i);
-}
-
-/// \returns The absolute value of an [ts::integer]().
-/// \module types
-/// \param 2
-/// \exclude
-template <typename SignedInteger, class Policy,
-          typename = typename std::enable_if<std::is_signed<SignedInteger>::value>::type>
-TYPE_SAFE_FORCE_INLINE constexpr make_unsigned_t<integer<SignedInteger, Policy>> abs(
-    const integer<SignedInteger, Policy>& i)
-{
-    return make_unsigned(i > 0 ? i : -i);
-}
-
-/// \returns `i` unchanged.
-/// \notes This is an optimization of `abs()` for unsigned integer types.
-/// \module types
-/// \param 1
-/// \exclude
-template <typename UnsignedInteger,
-          typename = typename std::enable_if<std::is_unsigned<UnsignedInteger>::value>::type>
-TYPE_SAFE_FORCE_INLINE constexpr UnsignedInteger abs(const UnsignedInteger& i)
-{
-    return i;
-}
-
-/// \returns `i` unchanged.
-/// \notes This is an optimization of `abs()` for unsigned integer types.
-/// \module types
-/// \param 2
-/// \exclude
-template <typename UnsignedInteger, class Policy,
-          typename = typename std::enable_if<std::is_unsigned<UnsignedInteger>::value>::type>
-TYPE_SAFE_FORCE_INLINE constexpr integer<UnsignedInteger, Policy> abs(
-    const integer<UnsignedInteger, Policy>& i)
-{
-    return i;
-}
-
 //=== comparison ===//
 /// \exclude
 namespace detail
 {
-//    // A signed, B unsigned
-//    template <typename A, typename B, class Policy>
-//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_equal_unsafe_impl(const integer<A, Policy>& a,
-//                                                                const integer<B, Policy>& b,
-//                                                                std::true_type,
-//                                                                std::false_type) noexcept
-//    {
-//        using UA = typename make_unsigned<A>::type;
-//        return static_cast<A>(a) < 0 ? false : UA(static_cast<A>(a)) == static_cast<B>(b);
-//    }
-
-//    // A unsigned, B signed
-//    template <typename A, typename B, class Policy>
-//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_equal_unsafe_impl(const integer<A, Policy>& a,
-//                                                                const integer<B, Policy>& b,
-//                                                                std::false_type,
-//                                                                std::true_type) noexcept
-//    {
-//        using UB = typename make_unsigned<B>::type;
-//        return static_cast<B>(b) < 0 ? false : UB(static_cast<B>(b)) == static_cast<A>(a);
-//    }
 
     // A and B same signedness
     template <typename A, typename B, class Policy>
@@ -484,37 +297,6 @@ namespace detail
         return static_cast<A>(a) == static_cast<B>(b);
     }
 
-//    // A and B different signedness
-//    template <typename A, typename B, class Policy>
-//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_equal_impl(const integer<A, Policy>& a,
-//                                                         const integer<B, Policy>& b,
-//                                                         std::false_type) noexcept
-//    {
-//        return cmp_equal_unsafe_impl(a, b, std::is_signed<A>(), std::is_signed<B>());
-//    }
-
-//    // A signed, B unsigned
-//    template <typename A, typename B, class Policy>
-//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_less_unsafe_impl(const integer<A, Policy>& a,
-//                                                               const integer<B, Policy>& b,
-//                                                               std::true_type,
-//                                                               std::false_type) noexcept
-//    {
-//        using UA = typename make_unsigned<A>::type;
-//        return static_cast<A>(a) < 0 ? true : UA(static_cast<A>(a)) < static_cast<B>(b);
-//    }
-
-//    // A unsigned, B signed
-//    template <typename A, typename B, class Policy>
-//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_less_unsafe_impl(const integer<A, Policy>& a,
-//                                                               const integer<B, Policy>& b,
-//                                                               std::false_type,
-//                                                               std::true_type) noexcept
-//    {
-//        using UB = typename make_unsigned<B>::type;
-//        return static_cast<B>(b) < 0 ? false : static_cast<A>(a) < UB(static_cast<B>(b));
-//    }
-
     // A and B same signedness
     template <typename A, typename B, class Policy>
     TYPE_SAFE_FORCE_INLINE constexpr bool cmp_less_impl(const integer<A, Policy>& a,
@@ -523,15 +305,6 @@ namespace detail
     {
         return static_cast<A>(a) < static_cast<B>(b);
     }
-
-//    // A and B different signedness
-//    template <typename A, typename B, class Policy>
-//    TYPE_SAFE_FORCE_INLINE constexpr bool cmp_less_impl(const integer<A, Policy>& a,
-//                                                        const integer<B, Policy>& b,
-//                                                        std::false_type) noexcept
-//    {
-//        return cmp_less_unsafe_impl(a, b, std::is_signed<A>(), std::is_signed<B>());
-//    }
 
 } // namespace detail
 
@@ -556,73 +329,51 @@ namespace detail
         return a Op integer<B, Policy>(b);                                                         \
     }
 
-/// \returns The result of the comparison of the stored integer value in the [ts::integer]().
-/// \notes These functions do not participate in overload resolution
-/// unless `A` and `B` are both integer types.
-/// \group int_comp Comparison operators
-/// \module types
-/// \param 2
-/// \exclude
 template <typename A, typename B, class Policy>
 TYPE_SAFE_FORCE_INLINE constexpr bool operator==(const integer<A, Policy>& a,
                                                  const integer<B, Policy>& b) noexcept
 {
-    return detail::cmp_equal_impl(a, b, detail::is_safe_integer_comparison<A, B>());
+    return detail::cmp_equal_impl(a, b, detail::is_safe_integer_conversion<A, B>());
 }
 TYPE_SAFE_DETAIL_MAKE_OP(==)
 
-/// \group int_comp Comparison operators
-/// \param 2
-/// \exclude
 template <typename A, typename B, class Policy>
 TYPE_SAFE_FORCE_INLINE constexpr bool operator!=(const integer<A, Policy>& a,
                                                  const integer<B, Policy>& b) noexcept
 {
-    return !detail::cmp_equal_impl(a, b, detail::is_safe_integer_comparison<A, B>());
+    return !detail::cmp_equal_impl(a, b, detail::is_safe_integer_conversion<A, B>());
 }
 TYPE_SAFE_DETAIL_MAKE_OP(!=)
 
-/// \group int_comp Comparison operators
-/// \param 2
-/// \exclude
 template <typename A, typename B, class Policy>
 TYPE_SAFE_FORCE_INLINE constexpr bool operator<(const integer<A, Policy>& a,
                                                 const integer<B, Policy>& b) noexcept
 {
-    return detail::cmp_less_impl(a, b, detail::is_safe_integer_comparison<A, B>());
+    return detail::cmp_less_impl(a, b, detail::is_safe_integer_conversion<A, B>());
 }
 TYPE_SAFE_DETAIL_MAKE_OP(<)
 
-/// \group int_comp Comparison operators
-/// \param 2
-/// \exclude
 template <typename A, typename B, class Policy>
 TYPE_SAFE_FORCE_INLINE constexpr bool operator<=(const integer<A, Policy>& a,
                                                  const integer<B, Policy>& b) noexcept
 {
-    return !detail::cmp_less_impl(b, a, detail::is_safe_integer_comparison<A, B>());
+    return !detail::cmp_less_impl(b, a, detail::is_safe_integer_conversion<A, B>());
 }
 TYPE_SAFE_DETAIL_MAKE_OP(<=)
 
-/// \group int_comp Comparison operators
-/// \param 2
-/// \exclude
 template <typename A, typename B, class Policy>
 TYPE_SAFE_FORCE_INLINE constexpr bool operator>(const integer<A, Policy>& a,
                                                 const integer<B, Policy>& b) noexcept
 {
-    return detail::cmp_less_impl(b, a, detail::is_safe_integer_comparison<A, B>());
+    return detail::cmp_less_impl(b, a, detail::is_safe_integer_conversion<A, B>());
 }
 TYPE_SAFE_DETAIL_MAKE_OP(>)
 
-/// \group int_comp Comparison operators
-/// \param 2
-/// \exclude
 template <typename A, typename B, class Policy>
 TYPE_SAFE_FORCE_INLINE constexpr bool operator>=(const integer<A, Policy>& a,
                                                  const integer<B, Policy>& b) noexcept
 {
-    return !detail::cmp_less_impl(a, b, detail::is_safe_integer_comparison<A, B>());
+    return !detail::cmp_less_impl(a, b, detail::is_safe_integer_conversion<A, B>());
 }
 TYPE_SAFE_DETAIL_MAKE_OP(>=)
 
@@ -634,17 +385,17 @@ TYPE_SAFE_DETAIL_MAKE_OP(>=)
 #define TYPE_SAFE_DETAIL_MAKE_OP(Op)                                                               \
     /** \exclude return                                                                            \
      * \group int_binary_op */                                                                     \
-    template <typename A, typename B, class Policy>                                                \
+    template <typename A, typename B, class Policy, typename = detail::enable_safe_integer_conversion<A, B>>                                                \
     TYPE_SAFE_FORCE_INLINE constexpr auto operator Op(const A& a, const integer<B, Policy>& b)     \
-        ->integer<detail::integer_result_t<A, B>, Policy>                                          \
+        -> integer<B, Policy>                                      \
     {                                                                                              \
         return integer<A, Policy>(a) Op b;                                                         \
     }                                                                                              \
     /** \exclude return                                                                            \
      * \group int_binary_op */                                                                     \
-    template <typename A, class Policy, typename B>                                                \
+    template <typename A, class Policy, typename B, typename = detail::enable_safe_integer_conversion<A, B>>                                                \
     TYPE_SAFE_FORCE_INLINE constexpr auto operator Op(const integer<A, Policy>& a, const B& b)     \
-        ->integer<detail::integer_result_t<A, B>, Policy>                                          \
+        ->integer<A, Policy>                                          \
     {                                                                                              \
         return a Op integer<B, Policy>(b);                                                         \
     }                                                                                              \
@@ -668,61 +419,56 @@ TYPE_SAFE_DETAIL_MAKE_OP(>=)
 /// \group int_binary_op Binary operations
 /// \module types
 /// \exclude return
-template <typename A, typename B, class Policy>
+template <typename A, typename B, class Policy, typename = detail::enable_safe_integer_conversion<A, B>>
 TYPE_SAFE_FORCE_INLINE constexpr auto operator+(const integer<A, Policy>& a,
                                                 const integer<B, Policy>& b)
-    -> integer<detail::integer_result_t<A, B>, Policy>
+    -> integer<A, Policy>
 {
-    using type = detail::integer_result_t<A, B>;
-    return Policy::template do_addition<type>(static_cast<A>(a), static_cast<B>(b));
+    return Policy::template do_addition<A>(static_cast<A>(a), static_cast<B>(b));
 }
 TYPE_SAFE_DETAIL_MAKE_OP(+)
 
 /// \group int_binary_op
 /// \exclude return
-template <typename A, typename B, class Policy>
+template <typename A, typename B, class Policy, typename = detail::enable_safe_integer_conversion<A, B>>
 TYPE_SAFE_FORCE_INLINE constexpr auto operator-(const integer<A, Policy>& a,
                                                 const integer<B, Policy>& b)
-    -> integer<detail::integer_result_t<A, B>, Policy>
+    -> integer<A, Policy>
 {
-    using type = detail::integer_result_t<A, B>;
-    return Policy::template do_subtraction<type>(static_cast<A>(a), static_cast<B>(b));
+    return Policy::template do_subtraction<A>(static_cast<A>(a), static_cast<B>(b));
 }
 TYPE_SAFE_DETAIL_MAKE_OP(-)
 
 /// \group int_binary_op
 /// \exclude return
-template <typename A, typename B, class Policy>
+template <typename A, typename B, class Policy, typename = detail::enable_safe_integer_conversion<A, B>>
 TYPE_SAFE_FORCE_INLINE constexpr auto operator*(const integer<A, Policy>& a,
                                                 const integer<B, Policy>& b)
-    -> integer<detail::integer_result_t<A, B>, Policy>
+    -> integer<A, Policy>
 {
-    using type = detail::integer_result_t<A, B>;
-    return Policy::template do_multiplication<type>(static_cast<A>(a), static_cast<B>(b));
+    return Policy::template do_multiplication<A>(static_cast<A>(a), static_cast<B>(b));
 }
 TYPE_SAFE_DETAIL_MAKE_OP(*)
 
 /// \group int_binary_op
 /// \exclude return
-template <typename A, typename B, class Policy>
+template <typename A, typename B, class Policy, typename = detail::enable_safe_integer_conversion<A, B>>
 TYPE_SAFE_FORCE_INLINE constexpr auto operator/(const integer<A, Policy>& a,
                                                 const integer<B, Policy>& b)
-    -> integer<detail::integer_result_t<A, B>, Policy>
+    -> integer<A, Policy>
 {
-    using type = detail::integer_result_t<A, B>;
-    return Policy::template do_division<type>(static_cast<A>(a), static_cast<B>(b));
+    return Policy::template do_division<A>(static_cast<A>(a), static_cast<B>(b));
 }
 TYPE_SAFE_DETAIL_MAKE_OP(/)
 
 /// \group int_binary_op
 /// \exclude return
-template <typename A, typename B, class Policy>
+template <typename A, typename B, class Policy, typename = detail::enable_safe_integer_conversion<A, B>>
 TYPE_SAFE_FORCE_INLINE constexpr auto operator%(const integer<A, Policy>& a,
                                                 const integer<B, Policy>& b)
-    -> integer<detail::integer_result_t<A, B>, Policy>
+    -> integer<A, Policy>
 {
-    using type = detail::integer_result_t<A, B>;
-    return Policy::template do_modulo<type>(static_cast<A>(a), static_cast<B>(b));
+    return Policy::template do_modulo<A>(static_cast<A>(a), static_cast<B>(b));
 }
 TYPE_SAFE_DETAIL_MAKE_OP(%)
 
