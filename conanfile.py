@@ -6,7 +6,7 @@ from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain
 
 class TypeSafe(ConanFile):
     name = 'type_safe'
-    version = '1.0.16'
+    version = '1.0.17'
     user = "user"
     channel = "stable"
     settings = ("os", "build_type", "arch", "compiler")
@@ -28,6 +28,9 @@ class TypeSafe(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
+
+    def build_requirements(self):
+        self.tool_requires("cmake/[>=3.5]")
 
     def package(self):
         cmake = CMake(self)
