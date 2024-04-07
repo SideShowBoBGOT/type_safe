@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(type_safe)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 11)
 
 add_library(type_safe INTERFACE
         include/type_safe/detail/aligned_union.hpp

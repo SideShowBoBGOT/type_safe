@@ -12,7 +12,7 @@ int main() {
 	type_safe::types::float_t c = 255.f;
 	type_safe::types::float_t d = 255.f;
 	type_safe::types::double_t a = 1.0;
-	using vv = type_safe::make_unsigned_t<type_safe::types::int32_t>;
+	using vv = type_safe::make_unsigned_t<type_safe::types::uint32_t>;
 	static_assert(std::is_same<vv, type_safe::types::uint32_t>::value);
 	// c + a;
 	// c + 5.f;
