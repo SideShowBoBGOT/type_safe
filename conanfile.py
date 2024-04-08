@@ -6,7 +6,7 @@ from conan.tools.cmake import CMake, CMakeDeps, CMakeToolchain
 
 class TypeSafe(ConanFile):
     name = 'type_safe'
-    version = '1.0.19'
+    version = '1.0.20'
     user = "user"
     channel = "stable"
     settings = ("os", "build_type", "arch", "compiler")
